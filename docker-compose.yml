@@ -1,0 +1,42 @@
+version: '3.8'
+name: agent-system
+services:
+  db-memory:
+    image: postgres:16-alpine
+    container_name: db-memory
+    env_file:
+      - ./db-memory/.env
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_memory_data:/var/lib/postgresql/data
+      - ./db-memory/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  agent-worker:
+    build: ./agent-worker
+    container_name: agent-worker
+    env_file:
+      - ./agent-worker/.env
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./agent-worker:/app
+    depends_on:
+      - db-memory
+    command: uvicorn worker.api:app --host 0.0.0.0 --port 8001 --reload
+
+  api-service:
+    build: ./api-service
+    container_name: webhook_api
+    env_file:
+      - ./api-service/.env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./api-service:/app
+    depends_on:
+      - agent-worker
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+volumes:
+  db_memory_data:
