@@ -4,12 +4,13 @@ from langgraph.prebuilt import ToolNode
 from worker.agent.state import AgentState
 from worker.agent.prompt_loader import load_prompt
 from worker.agent.tools import ALL_TOOLS
+import os
 
 MAX_HISTORY = 10
 
 _llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash",
-    max_tokens=256,
+    model=os.getenv("MODEL"),
+    max_tokens=512,
     temperature=0.7,
 )
 
